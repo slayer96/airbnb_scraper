@@ -10,9 +10,7 @@ import scrapy
 
 class ReviewItem(scrapy.Item):
     review_text = scrapy.Field()
-    review_summary = scrapy.Field()
     reference = scrapy.Field()
-    text = scrapy.Field()
 
 
 class AirbnbSpiderItem(scrapy.Item):
@@ -42,10 +40,11 @@ class AirbnbSpiderItem(scrapy.Item):
     hangers = scrapy.Field()  #
     hair_dryer = scrapy.Field()  #
     heating = scrapy.Field()  #
-    # house_rules = scrapy.Field()
+    house_rules = scrapy.Field()
     h24_check_in = scrapy.Field()  #
     host_name = scrapy.Field()  #
     host_description = scrapy.Field()
+    host_reviews = scrapy.Field()
     indoor_fireplace = scrapy.Field()  #
     iron = scrapy.Field()  #
     internet = scrapy.Field()  #
@@ -65,10 +64,11 @@ class AirbnbSpiderItem(scrapy.Item):
     photo_urls = scrapy.Field()   #
     private_entrance = scrapy.Field()  #
 
-    reviews = scrapy.Field()
+    reviews_text = scrapy.Field()
     response_date = scrapy.Field()
     response_time = scrapy.Field()
 
+    review_summary = scrapy.Field()
     room_type = scrapy.Field()  #
     spa = scrapy.Field()
     smoking_allowed = scrapy.Field()  #

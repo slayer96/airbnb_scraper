@@ -41,6 +41,23 @@ class BnbSpider(scrapy.Spider):
             airbnb_json = airbnb_json_all['airEventData']
             amenities = airbnb_json['amenities']
             item['response_time'] = airbnb_json['response_time_shown']
+
+        listing_array = response.xpath('//meta[@id="_bootstrap-listing"]/@content').extract()
+        if listing_array:
+            listing_json_all = json.loads(listing_array[0])
+            listing_json = listing_json_all['listing']
+            listing_description = listing_json['localized_sectioned_description']
+            item['reviews_text'] = '\n\n'.join([r['comments'] for r in listing_json['sorted_reviews']])
+            item['reference'] = listing_json['user']['profile_path']
+            if listing_description:
+                item['description'] = listing_description['description']
+                item['house_rules'] = listing_description['house_rules']
+                item['review_summary'] = listing_description['summary']
+            else:
+                item['description'] = listing_json.get('localized_description', listing_json['description'])
+                item['review_summary'] = listing_json['summary']
+                item['house_rules'] = ''
+
         item['availability'] = ''
         item['accuracy_rating'] = airbnb_json['accuracy_rating']
         item['air_conditioning'] = 5 in amenities
@@ -58,7 +75,6 @@ class BnbSpider(scrapy.Spider):
         item['communication_review'] = airbnb_json['communication_rating']
         item['doorman'] = 14 in amenities
         item['dryer'] = 34 in amenities
-        item['description'] = response.xpath('/html/head/meta[@property="og:description"]/@content').extract_first()
         item['essentials'] = 40 in amenities
         item['extra_people_charge'] = response.xpath('//strong[contains(@data-reactid,"Extra people")]/text()').extract_first()
         item['family_or_kid_friendly'] = 31 in amenities
@@ -70,6 +86,7 @@ class BnbSpider(scrapy.Spider):
         item['h24_check_in'] = 43 in amenities
         item['host_name'] = airbnb_json_all['hostFirstName']
         item['host_description'] = ''
+        item['host_reviews'] = ''
         item['indoor_fireplace'] = 27 in amenities
         item['iron'] = 46 in amenities
         item['internet'] = 3 in amenities
@@ -88,6 +105,7 @@ class BnbSpider(scrapy.Spider):
         item['private_entrance'] = 57 in amenities
         item['response_date'] = ''
         item['response_time'] = ''
+
         item['reviews'] = ''
         item['room_type'] = response.xpath('//strong[contains(@data-reactid,"Room type")]/text()').extract_first()
         item['spa'] = ''
@@ -124,8 +142,3 @@ class BnbSpider(scrapy.Spider):
                 # has results but that there is only one page.
                 return 1
 
-
-Amenities = {
-    '43' : '24_h',
-    '5': 'air_conditioning'
-}
