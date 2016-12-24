@@ -8,14 +8,9 @@
 import scrapy
 
 
-class ReviewItem(scrapy.Item):
-    review_text = scrapy.Field()
-    reference = scrapy.Field()
-
-
 class AirbnbSpiderItem(scrapy.Item):
-    availability = scrapy.Field()
-    accuracy_review = scrapy.Field()  #
+    availability = scrapy.Field()   #g
+    accuracy_rating = scrapy.Field()  #
     accommodates = scrapy.Field()  #
     air_conditioning = scrapy.Field()  #
     bathrooms = scrapy.Field()  #
@@ -67,7 +62,8 @@ class AirbnbSpiderItem(scrapy.Item):
     reviews_text = scrapy.Field()
     response_date = scrapy.Field()
     response_time = scrapy.Field()
-
+    reference = scrapy.Field()
+    reviews = scrapy.Field()
     review_summary = scrapy.Field()
     room_type = scrapy.Field()  #
     spa = scrapy.Field()
