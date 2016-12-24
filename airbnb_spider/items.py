@@ -60,7 +60,7 @@ class AirbnbSpiderItem(scrapy.Item):
     private_entrance = scrapy.Field()  #
 
     reviews_text = scrapy.Field()
-    response_date = scrapy.Field()
+    response_rate = scrapy.Field()
     response_time = scrapy.Field()
     reference = scrapy.Field()
     reviews = scrapy.Field()

@@ -3,7 +3,6 @@ import json
 import logging
 
 import scrapy
-from lxml import html
 from ..items import AirbnbSpiderItem
 
 QUERY = 'Budapest--Hungary'
@@ -35,19 +34,20 @@ class BnbSpider(scrapy.Spider):
     def parse_content_listing(self, response):
         item = AirbnbSpiderItem()
 
-        json_array = response.xpath('//meta[@id="_bootstrap-room_options"]/@content').extract()
+        room_array = response.xpath('//meta[@id="_bootstrap-room_options"]/@content').extract()
         amenities = []
-        if json_array:
-            airbnb_json_all = json.loads(json_array[0])
-            airbnb_json = airbnb_json_all['airEventData']
-            amenities = airbnb_json['amenities']
-            item['accuracy_rating'] = airbnb_json['accuracy_rating']
-            item['check_in_review'] = airbnb_json['cleanliness_rating']
-            item['communication_review'] = airbnb_json['communication_rating']
-            item['cleanliness_review'] = airbnb_json['cleanliness_rating']
-            item['host_name'] = airbnb_json_all['hostFirstName']
-            item['photo_urls'] = [url['thumbnail_url'] for url in airbnb_json_all['photoData']]
-            item['response_time'] = airbnb_json['response_time_shown']
+        if room_array:
+            room_options_all = json.loads(room_array[0])
+            room_options = room_options_all['airEventData']
+            amenities = room_options['amenities']
+            item['accuracy_rating'] = room_options['accuracy_rating']
+            item['check_in_review'] = room_options['cleanliness_rating']
+            item['communication_review'] = room_options['communication_rating']
+            item['cleanliness_review'] = room_options['cleanliness_rating']
+            item['host_name'] = room_options_all['hostFirstName']
+            item['photo_urls'] = [url['thumbnail_url'] for url in room_options_all['photoData']]
+            item['response_time'] = room_options['response_time_shown']
+
         listing_array = response.xpath('//meta[@id="_bootstrap-listing"]/@content').extract()
         if listing_array:
             listing_json_all = json.loads(listing_array[0])
@@ -64,6 +64,12 @@ class BnbSpider(scrapy.Spider):
                 item['description'] = listing_json.get('localized_description', listing_json['description'])
                 item['house_rules'] = ''
                 item['review_summary'] = listing_json['summary']
+        neigborhood_card_array = response.xpath('//meta[@id="_bootstrap-neighborhood_card"]/@content').extract()
+        if neigborhood_card_array:
+            neigborhood_card = json.loads(neigborhood_card_array[0])
+            item['name_of_district'] = neigborhood_card['neighborhood_localized_name']
+        else:
+            item['name_of_district'] = ''
 
         item['air_conditioning'] = 5 in amenities
         item['accommodates'] = response.xpath('//strong[contains(@data-reactid,"Accommodates")]/text()').extract_first()
@@ -86,7 +92,9 @@ class BnbSpider(scrapy.Spider):
         item['hair_dryer'] = 45 in amenities
         item['heating'] = 30 in amenities
         item['h24_check_in'] = 43 in amenities
-        item['host_description'] = ''
+
+        description = response.xpath('//div[@class="expandable-content expandable-content-long"]/div/p').extract()
+        item['host_description'] = [''.join(re.sub('<[^>]*>', '', i)) for i in description]
         item['indoor_fireplace'] = 27 in amenities
         item['iron'] = 46 in amenities
         item['internet'] = 3 in amenities
@@ -97,13 +105,13 @@ class BnbSpider(scrapy.Spider):
         item['latitude'] = response.xpath('/html/head/meta[@property="airbedandbreakfast:location:latitude"]/@content').extract_first()
         item['longitude'] = response.xpath('/html/head/meta[@property="airbedandbreakfast:location:longitude"]/@content').extract_first()
         item['monthly_discount'] = response.xpath('//strong[contains(@data-reactid,"Monthly Discount")]/text()').extract_first()
-        item['name_of_district'] = ''
+
         item['property_type'] = response.xpath('//strong[contains(@data-reactid,"Property type")]/text()').extract_first()
         item['pets_allowed'] = 12 in amenities
         item['pool'] = 7 in amenities
         item['private_entrance'] = 57 in amenities
-        item['response_date'] = ''
-        item['response_time'] = ''
+        item['response_rate'] = response.xpath('//span[text()="Response rate:"]/following-sibling::strong/text()').extract_first()
+        item['response_time'] = response.xpath('//span[text()="Response time:"]/following-sibling::strong/text()').extract_first()
         item['host_reviews'] = response.xpath('//span[contains(@data-reactid,"Reviews")]/text()').extract_first()
         item['room_type'] = response.xpath('//strong[contains(@data-reactid,"Room type")]/text()').extract_first()
         item['spa'] = ''
@@ -116,7 +124,6 @@ class BnbSpider(scrapy.Spider):
         item['washer'] = 33 in amenities
         item['weekly_discount'] = response.xpath('//strong[contains(@data-reactid,"Weekly Discount")]/text()').extract_first()
         item['url'] = response.url
-
         yield item
 
     def last_pagenumer_in_search(self, response):
